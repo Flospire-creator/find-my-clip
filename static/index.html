@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Find My Clip</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Instrument+Serif:ital@0;1&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="bar">
+  <a class="logo" href="/" aria-label="Find My Clip home">
+    <svg viewBox="0 0 32 32" aria-hidden="true" width="28" height="28"><rect x="3" y="7" width="26" height="18" rx="4" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="14" cy="16" r="4.6" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M17.4 19.4 21 23" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+    <span>Find My Clip</span>
+  </a>
+  <nav class="tabs" aria-label="Main" hidden id="tabs">
+    <button type="button" data-view="sort" aria-current="page">Tidy up</button>
+    <button type="button" data-view="find">Find the moment</button>
+    <button type="button" data-view="cut">Make a video <span class="badge" id="cut-count" hidden>0</span></button>
+  </nav>
+</header>
+
+<main id="main">
+  <div class="notice sample" id="sample-note" hidden role="note">
+    <strong>Sample media.</strong> These 20 files were made on this Mac from pictures that come with macOS, to show how Find My Clip works. Choose your own folder any time.
+  </div>
+  <div class="notice warn" id="model-note" hidden role="note"></div>
+
+  <!-- Start -->
+  <section class="view start" id="view-start" hidden>
+    <h1>You filmed it.<br><span class="mark">Let's find it.</span>
+      <svg class="stroke" viewBox="0 0 300 24" aria-hidden="true" preserveAspectRatio="none"><path d="M4 16 C 60 6, 120 20, 180 11 S 270 8, 296 14" /></svg>
+    </h1>
+    <p class="lead">Find the right moment, organise your footage and turn it into something worth posting.</p>
+    <div class="start-actions">
+      <button type="button" class="btn primary big" id="choose">Choose a folder</button>
+      <button type="button" class="btn big" id="try-sample">Try it with sample files</button>
+    </div>
+    <details class="paste">
+      <summary>Or paste a folder path</summary>
+      <form id="path-form">
+        <label for="path-input">Folder path</label>
+        <div class="row">
+          <input id="path-input" type="text" placeholder="/Users/you/Pictures/Phone" autocomplete="off" spellcheck="false">
+          <button type="submit" class="btn">Open</button>
+        </div>
+      </form>
+    </details>
+    <ul class="promises">
+      <li>Everything happens on this computer. Nothing is uploaded.</li>
+      <li>Your originals stay exactly where they are. We only ever make copies.</li>
+      <li>We only read the folder you choose.</li>
+    </ul>
+    <p class="error" id="start-error" role="alert"></p>
+  </section>
+
+  <!-- Sort a folder: choose, watch it sort, done -->
+  <section class="view" id="view-sort" hidden aria-labelledby="sort-title">
+    <div class="sort-head">
+      <h1 id="sort-title"><span id="title-a">Let's tidy up your</span> <em id="folder-word">Downloads</em> <span id="title-b">folder.</span></h1>
+      <p class="sub" id="sort-sub">We'll group your photos and videos, then put them into new folders in Pictures › Find My Clip. Extra copies are left out, and your originals stay exactly where they are.</p>
+    </div>
+
+    <!-- 01 Choose -->
+    <div class="choose" id="choose-step">
+      <div class="folder-card">
+        <svg class="ficon" viewBox="0 0 48 40" aria-hidden="true"><path d="M3 8a4 4 0 0 1 4-4h11l5 5h18a4 4 0 0 1 4 4v20a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4z" /></svg>
+        <div class="fc-text"><strong id="fc-name"></strong><span id="folder-meta"></span></div>
+        <button type="button" class="btn small" id="change-folder">Change folder</button>
+      </div>
+      <button type="button" class="btn primary big" id="go">Tidy up this folder</button>
+      <label class="mode" for="mode">These are from
+        <select id="mode">
+          <option value="auto">Let us work it out</option>
+          <option value="everyday">Everyday life</option>
+          <option value="event">One event, like a wedding or birthday</option>
+        </select>
+      </label>
+    </div>
+
+    <!-- 02 Watch it sort -->
+    <div class="watch" id="watch-step" hidden>
+      <ul class="chips" aria-label="Progress">
+        <li class="total"><span>photos and videos</span><b id="c-found">0</b></li>
+        <li><span>photos sorted</span><b id="c-photos">0</b></li>
+        <li><span>videos sorted</span><b id="c-videos">0</b></li>
+        <li><span id="c-folders-label">new folders</span><b id="c-folders">0</b></li>
+        <li class="rv"><span>duplicate media</span><b id="c-dupes">0</b></li>
+      </ul>
+      <div class="progress" role="progressbar" aria-label="Files sorted" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progress"><span></span></div>
+      <div class="canvas" id="canvas">
+        <div class="ring" id="ring-left">
+          <h2 class="side-head">Photos</h2>
+          <div class="cards two" id="photo-cards"></div>
+        </div>
+        <div class="pile-wrap" id="pile-wrap">
+          <svg class="trails" id="trails" aria-hidden="true"></svg>
+          <div class="pile" id="pile" aria-hidden="true"></div>
+          <p class="mess-label" aria-hidden="true">a total mess</p>
+          <div class="globe-foot" id="globe-foot">
+            <p class="status" id="status" role="status" aria-live="polite"></p>
+            <button type="button" class="btn small" id="pause" hidden>Pause</button>
+          </div>
+          <div class="next" id="next" hidden>
+            <p class="sorted" id="done-word" aria-hidden="true">Sorted.</p>
+            <p id="next-note"></p>
+            <div class="next-actions">
+              <button type="button" class="btn primary big" id="copy-folders">Create the folders</button>
+              <button type="button" class="btn big" id="review-btn">Check the groups first</button>
+            </div>
+            <p class="sub" id="copy-explain"></p>
+            <div class="next-more" id="next-more">
+              <label class="mode" for="mode-again">These are from
+                <select id="mode-again">
+                  <option value="auto">Let us work it out</option>
+                  <option value="everyday">Everyday life</option>
+                  <option value="event">One event, like a wedding or birthday</option>
+                </select>
+              </label>
+              <button type="button" class="btn small" id="resort">Tidy up again</button>
+              <button type="button" class="btn small" id="another">Tidy up another folder</button>
+              <p class="sub" id="resort-note">Tidy up again picks up new files and makes a fresh set of folders. The last set stays in Pictures › Find My Clip.</p>
+            </div>
+          </div>
+        </div>
+        <div class="ring" id="ring-right">
+          <h2 class="side-head" id="video-head" hidden>Videos</h2>
+          <div class="cards" id="video-cards"></div>
+          <h2 class="side-head">Duplicate media</h2>
+          <div class="cards" id="special-cards"></div>
+        </div>
+      </div>
+      <p class="failed-line" id="failed-line" hidden><span id="failed-text"></span> <button type="button" class="link" id="retry">Try again</button></p>
+    </div>
+  </section>
+
+  <!-- 03 Review groups -->
+  <section class="view" id="view-review" hidden aria-labelledby="review-title">
+    <div class="sort-head center">
+      <h1 id="review-title">Your <em id="review-folder"></em> folder, organised.</h1>
+      <p class="sub" id="review-meta"></p>
+    </div>
+    <div class="review">
+      <nav class="glist" id="glist" aria-label="Groups"></nav>
+      <div class="gview">
+        <div class="gview-head">
+          <div><h2 id="gv-title"></h2><span class="sub" id="gv-count"></span></div>
+          <label class="selall"><input type="checkbox" id="sel-all"> Select all</label>
+        </div>
+        <p class="dlg-sub" id="gv-sub"></p>
+        <div class="dlg-actions" id="group-actions" hidden>
+          <button type="button" class="btn primary" id="skip-copies">Keep the best of each, skip the rest</button>
+        </div>
+        <div class="photos" id="gv-grid"></div>
+      </div>
+      <aside class="gpanel" id="gpanel" aria-labelledby="gp-title">
+        <h2 id="gp-title">Review this group</h2>
+        <form id="rename-form">
+          <label for="gp-name">Group name</label>
+          <div class="row"><input id="gp-name" type="text" maxlength="40" autocomplete="off"><button type="submit" class="btn small">Rename</button></div>
+        </form>
+        <p class="gp-files" id="gp-files"></p>
+        <div class="gp-dest">
+          <span class="label">Copies go to</span>
+          <span class="dest"><svg class="ficon small" viewBox="0 0 48 40" aria-hidden="true"><path d="M3 8a4 4 0 0 1 4-4h11l5 5h18a4 4 0 0 1 4 4v20a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4z" /></svg><span id="gp-dest"></span></span>
+        </div>
+        <div class="gp-move" id="gp-move" hidden>
+          <label for="gp-move-to"><span id="gp-move-n"></span> selected. Move to</label>
+          <div class="row"><select id="gp-move-to"></select><button type="button" class="btn small" id="gp-move-go">Move</button></div>
+        </div>
+        <button type="button" class="btn primary big" id="copy-folders-2">Create the folders</button>
+        <button type="button" class="link back" id="back-to-sort">Back to the sort</button>
+        <p class="note">Your originals stay where they are.</p>
+      </aside>
+    </div>
+  </section>
+
+  <!-- Find a clip -->
+  <section class="view" id="view-find" hidden aria-labelledby="find-title">
+    <h1 id="find-title">Find the moment</h1>
+    <form class="search" id="search-form" role="search">
+      <label for="q" class="sr-only">Describe what you're looking for</label>
+      <input id="q" type="search" placeholder="Try “holiday sunsets” or “the video where I talked about my business”" autocomplete="off">
+      <button type="submit" class="btn primary">Find</button>
+    </form>
+    <div class="chips" id="chips" aria-label="Examples"></div>
+    <p class="status" id="find-status" role="status" aria-live="polite"></p>
+    <div class="results" id="results"></div>
+  </section>
+
+  <!-- First cut -->
+  <section class="view" id="view-cut" hidden aria-labelledby="cut-title">
+    <div class="view-head">
+      <div>
+        <h1 id="cut-title">Make a video</h1>
+        <p class="sub">Pick your clips and we'll make a first draft. Put them in order and trim them, then finish it in any editor.</p>
+      </div>
+    </div>
+    <div class="cut-empty" id="cut-empty">
+      <p>No clips yet. Add moments from <button type="button" class="link" data-go="find">Find the moment</button> or from any group in <button type="button" class="link" data-go="sort">Tidy up</button>.</p>
+    </div>
+    <ol class="cut-list" id="cut-list"></ol>
+    <div class="cut-foot" id="cut-foot" hidden>
+      <label>Shape
+        <select id="shape">
+          <option value="vertical">Vertical, for Reels and TikTok</option>
+          <option value="landscape">Landscape, for YouTube</option>
+          <option value="square">Square</option>
+        </select>
+      </label>
+      <span class="total" id="cut-total"></span>
+      <button type="button" class="btn primary" id="make-cut">Make my first draft</button>
+    </div>
+    <div class="cut-done" id="cut-done" hidden></div>
+  </section>
+</main>
+
+<!-- Selection bar -->
+<div class="selbar" id="selbar" hidden>
+  <span id="sel-count"></span>
+  <button type="button" class="btn" id="sel-cut">Add to my video</button>
+  <form id="project-form" class="inline">
+    <label for="project-name" class="sr-only">Project name</label>
+    <input id="project-name" type="text" placeholder="Project name" value="My project">
+    <button type="submit" class="btn primary">Copy to a project</button>
+  </form>
+  <button type="button" class="link" id="sel-clear">Clear</button>
+</div>
+
+<dialog id="group-dialog" aria-labelledby="group-title">
+  <div class="dlg-head">
+    <h2 id="group-title"></h2>
+    <button type="button" class="close" data-close aria-label="Close">×</button>
+  </div>
+  <p class="dlg-sub" id="group-sub"></p>
+  <div class="dlg-actions" id="group-actions" hidden>
+    <button type="button" class="btn primary" id="skip-copies">Keep the best of each, skip the rest</button>
+  </div>
+  <div class="tiles" id="group-tiles"></div>
+</dialog>
+
+<dialog id="viewer" aria-labelledby="viewer-title" class="viewer">
+  <div class="dlg-head">
+    <h2 id="viewer-title"></h2>
+    <button type="button" class="close" data-close aria-label="Close">×</button>
+  </div>
+  <div class="viewer-body">
+    <div class="viewer-media" id="viewer-media"></div>
+    <aside class="viewer-side" id="viewer-side"></aside>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
